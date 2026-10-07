@@ -2,7 +2,10 @@
   "name": "photo-portfolio",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
+    "scripts": {
+    "photos": "node scripts/build-photos.mjs",
+    "predev": "node scripts/build-photos.mjs",
+    "prebuild": "node scripts/build-photos.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

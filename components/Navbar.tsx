@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { site } from "../lib/site";
 
 const links = [
   { href: "/", label: "Home" },
@@ -11,6 +13,7 @@ const links = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -21,6 +24,9 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
     <header
       className={`fixed top-0 z-50 w-full transition-all duration-300 ${
@@ -28,21 +34,35 @@ export default function Navbar() {
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        <Link href="/" className="font-serif text-2xl tracking-wide">
-          Photographer<span className="text-accent">.</span>
+        <Link
+          href="/"
+          className="font-serif text-xl tracking-wide sm:text-2xl"
+        >
+          {site.brand}
+          <span className="text-accent">.</span>
         </Link>
 
-        <ul className="hidden gap-10 md:flex">
+        <ul className="hidden items-center gap-10 md:flex">
           {links.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="text-sm uppercase tracking-widest text-white/80 transition hover:text-accent"
+                className={`text-sm uppercase tracking-widest transition hover:text-accent ${
+                  isActive(link.href) ? "text-accent" : "text-white/80"
+                }`}
               >
                 {link.label}
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/login"
+              className="rounded-full border border-accent px-6 py-2 text-sm uppercase tracking-widest text-accent transition hover:bg-accent hover:text-black"
+            >
+              Login
+            </Link>
+          </li>
         </ul>
 
         <button
@@ -63,12 +83,23 @@ export default function Navbar() {
               <Link
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="text-lg uppercase tracking-widest text-white/80"
+                className={`text-lg uppercase tracking-widest ${
+                  isActive(link.href) ? "text-accent" : "text-white/80"
+                }`}
               >
                 {link.label}
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="inline-block rounded-full border border-accent px-6 py-2 text-lg uppercase tracking-widest text-accent"
+            >
+              Login
+            </Link>
+          </li>
         </ul>
       )}
     </header>

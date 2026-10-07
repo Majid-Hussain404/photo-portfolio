@@ -12,6 +12,9 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
+// The Login button is only shown on your own computer until the real login exists.
+const showLogin = process.env.NODE_ENV !== "production";
+
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -55,14 +58,16 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
-          <li>
-            <Link
-              href="/login"
-              className="rounded-full border border-accent px-6 py-2 text-sm uppercase tracking-widest text-accent transition hover:bg-accent hover:text-black"
-            >
-              Login
-            </Link>
-          </li>
+          {showLogin && (
+            <li>
+              <Link
+                href="/login"
+                className="rounded-full border border-accent px-6 py-2 text-sm uppercase tracking-widest text-accent transition hover:bg-accent hover:text-black"
+              >
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
 
         <button
@@ -91,15 +96,17 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
-          <li>
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="inline-block rounded-full border border-accent px-6 py-2 text-lg uppercase tracking-widest text-accent"
-            >
-              Login
-            </Link>
-          </li>
+          {showLogin && (
+            <li>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="inline-block rounded-full border border-accent px-6 py-2 text-lg uppercase tracking-widest text-accent"
+              >
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
       )}
     </header>

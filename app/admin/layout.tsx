@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { site } from "../../lib/site";
 
 export const metadata: Metadata = {
@@ -12,12 +13,14 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Preview only: hidden on the live website until the real login is connected.
+  if (process.env.NODE_ENV === "production") notFound();
+
   return (
     <div className="mx-auto max-w-6xl px-6 pb-24 pt-32">
       <p className="mb-8 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">
         Design preview: nothing here is saved yet, and this page is not
-        protected yet. Do not publish the website until the real login is
-        connected.
+        protected yet. It is hidden on the live website.
       </p>
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">

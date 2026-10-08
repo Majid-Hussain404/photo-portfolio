@@ -10,14 +10,14 @@ export default function Home() {
     <main>
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
         <Image
-          src="/hero.jpg"
+          src="/back.JPG"
           alt={`Featured photograph by ${site.name}`}
           fill
           priority
           sizes="100vw"
-          className="animate-kenburns object-cover"
+          className="animate-kenburns object-cover object-top"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/35" />
 
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           <p

@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frames by Majid
 
-## Getting Started
+A photography portfolio built with Next.js.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Owner sign-in
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The `/login` page uses Supabase email/password authentication. Only the email
+configured as `site.email` in `lib/site.ts` is authorized to access `/admin`.
+Visitors cannot sign up. The first owner account can be initialized from
+`/login` using a private setup code and receives an invitation at the configured
+owner email.
 
-## Learn More
+1. Create a Supabase project and enable the Email provider.
+2. In Supabase Authentication settings, turn off public sign-ups.
+3. Copy `.env.example` to `.env.local`, then set
+   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from the
+   Supabase project API settings. Set `SUPABASE_SERVICE_ROLE_KEY` from the
+   project API settings and make a long, random `OWNER_SETUP_CODE`. The
+   service-role key and setup code are server-only secrets: never prefix them
+   with `NEXT_PUBLIC_`, expose them in the browser, or commit `.env.local`.
+4. Add `http://localhost:3000/auth/callback` to the Supabase redirect URL
+   allowlist. Add the production callback URL after deployment.
+5. Restart the dev server after changing environment variables.
 
-To learn more about Next.js, take a look at the following resources:
+6. Open `/login`, choose “First time? Set up the owner account”, enter the
+   email configured in `lib/site.ts` and the private setup code. The website
+   sends an invitation only to that email. Follow the email link to set your
+   password. After setup, remove `OWNER_SETUP_CODE` and
+   `SUPABASE_SERVICE_ROLE_KEY` from the deployment environment and restart or
+   redeploy; password login and reset do not need either secret.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For production password-reset email delivery, configure a trusted SMTP
+provider in Supabase. The login form sends reset links to the owner email only.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Visitors can browse the public portfolio. The `/admin` dashboard requires a
+valid Supabase session for the owner email. The existing photo-management
+controls are still previews and do not persist uploads yet.
 
-## Deploy on Vercel
+## Photo collections
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Add photographs to their matching folders under `public/photos/`, then run:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run photos
+```
+
+The generated photo list is consumed by the public portfolio pages.

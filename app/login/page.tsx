@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import LoginForm from "../../components/LoginForm";
 import { site } from "../../lib/site";
 
@@ -11,14 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  // Preview only: hidden on the live website until the real login is connected.
-  if (process.env.NODE_ENV === "production") notFound();
-
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden lg:block">
         <Image
-          src="/hero.jpg"
+          src="/back.JPG"
           alt=""
           fill
           priority

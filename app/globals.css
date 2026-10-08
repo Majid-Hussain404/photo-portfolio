@@ -19,7 +19,13 @@ html {
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image: url("/back.JPG");
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: cover;
+  background-attachment: scroll;
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
 }

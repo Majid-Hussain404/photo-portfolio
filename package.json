@@ -2,7 +2,7 @@
   "name": "photo-portfolio",
   "version": "0.1.0",
   "private": true,
-    "scripts": {
+  "scripts": {
     "photos": "node scripts/build-photos.mjs",
     "predev": "node scripts/build-photos.mjs",
     "prebuild": "node scripts/build-photos.mjs",
@@ -12,6 +12,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

@@ -1,139 +1,150 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { site } from "../lib/site";
+import { isSupabaseConfigured } from "../lib/supabase/config";
+import { createClient } from "../lib/supabase/client";
 
-// While this is true, the login is only a design preview (nothing is checked).
-// When the real login is connected, we will switch it off.
-const DEMO = true;
-
-type Mode = "login" | "forgot" | "create";
+type Mode = "login" | "setup";
 
 const field =
   "w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 outline-none transition placeholder:text-white/30 focus:border-accent focus:bg-white/10";
 const primary =
   "w-full rounded-full bg-accent px-8 py-3 text-sm font-medium uppercase tracking-widest text-black transition hover:scale-[1.02] hover:bg-white";
-const linkButton =
-  "block w-full text-center text-sm text-white/60 hover:text-accent";
-
-const strengthLabels = ["Too weak", "Weak", "Okay", "Good", "Strong"];
-const strengthColors = [
-  "bg-white/10",
-  "bg-red-400",
-  "bg-orange-400",
-  "bg-yellow-400",
-  "bg-emerald-400",
-];
-
-function strengthOf(pw: string) {
-  let score = 0;
-  if (pw.length >= 10) score++;
-  if (pw.length >= 14) score++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-  if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
-  return score;
-}
-
-function PasswordField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  autoComplete: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <label className="block text-sm text-white/70">
-      {label}
-      <div className="relative mt-1">
-        <input
-          type={show ? "text" : "password"}
-          required
-          autoComplete={autoComplete}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`${field} pr-20`}
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs uppercase tracking-widest text-white/50 hover:text-accent"
-        >
-          {show ? "Hide" : "Show"}
-        </button>
-      </div>
-    </label>
-  );
-}
 
 export default function LoginForm() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [message, setMessage] = useState<{
-    text: string;
-    error: boolean;
-  } | null>(null);
+  const [setupCode, setSetupCode] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
+  const [pending, setPending] = useState(false);
+  const configured = isSupabaseConfigured();
 
-  function go(next: Mode) {
-    setMode(next);
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setMessage(null);
-    setPassword("");
-    setConfirm("");
-  }
-
-  function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage({
-      text: "Design preview only. The real login will be connected in the next step. Nothing was checked or saved.",
-      error: false,
-    });
-  }
-
-  function handleForgot(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage({
-      text: "Design preview only. Later, a reset link will be sent to your registered email and expire after a short time.",
-      error: false,
-    });
-  }
-
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (password.length < 10) {
-      setMessage({ text: "Use at least 10 characters.", error: true });
+    setIsError(false);
+    if (!configured) {
+      setMessage("Owner sign-in is not configured yet. Add the Supabase settings to the site environment.");
+      setIsError(true);
       return;
     }
-    if (password !== confirm) {
-      setMessage({ text: "The two passwords do not match.", error: true });
-      return;
+
+    setPending(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setMessage("Email or password is incorrect.");
+        setIsError(true);
+        return;
+      }
+
+      if (data.user.email?.toLowerCase() !== site.email.toLowerCase()) {
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) {
+          throw signOutError;
+        }
+        setMessage("This account is not authorized to access the owner area.");
+        setIsError(true);
+        return;
+      }
+
+      router.replace("/admin");
+      router.refresh();
+    } catch (error) {
+      console.error("Owner sign-in failed:", error);
+      setMessage("Sign-in could not be completed. Please try again.");
+      setIsError(true);
+    } finally {
+      setPending(false);
     }
-    setMessage({
-      text: "Design preview only. No account was created. In the real version this works once, only for the owner's email and private setup code, and then locks for good.",
-      error: false,
-    });
   }
 
-  const strength = strengthOf(password);
+  async function handleForgotPassword() {
+    setMessage(null);
+    setIsError(false);
+    if (!configured) {
+      setMessage("Password reset is not configured yet.");
+      setIsError(true);
+      return;
+    }
+
+    if (email.trim().toLowerCase() !== site.email.toLowerCase()) {
+      setMessage(`Enter the owner email address (${site.email}) to request a reset.`);
+      setIsError(true);
+      return;
+    }
+
+    setPending(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        site.email,
+        {
+          redirectTo: `${window.location.origin}/auth/callback?next=%2Flogin%2Freset`,
+        }
+      );
+      if (error) {
+        throw error;
+      }
+      setMessage("If the owner account exists, a password reset link has been sent to its email.");
+    } catch (error) {
+      console.error("Password reset request failed:", error);
+      setMessage("The password reset email could not be sent. Please try again.");
+      setIsError(true);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleOwnerSetup(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage(null);
+    setIsError(false);
+    setPending(true);
+
+    try {
+      const response = await fetch("/api/auth/owner-setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), setupCode }),
+      });
+      const result: { message: string } = await response.json();
+      if (!response.ok) {
+        setMessage(result.message);
+        setIsError(true);
+        return;
+      }
+      setMessage(result.message);
+      setSetupCode("");
+      setMode("login");
+    } catch (error) {
+      console.error("Owner account setup request failed:", error);
+      setMessage("The owner setup request could not be completed. Please try again.");
+      setIsError(true);
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div>
-      {DEMO && (
-        <p className="mb-6 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-xs text-amber-200">
-          Design preview: the login is not connected yet.
+      {!configured && (
+        <p className="mb-6 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+          Owner sign-in needs Supabase project settings before it can be used.
         </p>
       )}
 
-      {mode === "login" && (
+      {mode === "login" ? (
         <form onSubmit={handleLogin} className="space-y-4">
           <label className="block text-sm text-white/70">
             Email
@@ -143,69 +154,57 @@ export default function LoginForm() {
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="Owner email"
               className={`${field} mt-1`}
             />
           </label>
-          <PasswordField
-            label="Password"
-            value={password}
-            onChange={setPassword}
-            placeholder="Your password"
-            autoComplete="current-password"
-          />
-          <button type="submit" className={primary}>
-            Log in
+          <label className="block text-sm text-white/70">
+            Password
+            <input
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              className={`${field} mt-1`}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={!configured || pending}
+            className={`${primary} disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            {pending ? "Please wait..." : "Log in"}
           </button>
-          <button type="button" onClick={() => go("forgot")} className={linkButton}>
-            Forgot password?
+          <button
+            type="button"
+            disabled={!configured || pending}
+            onClick={handleForgotPassword}
+            className="block w-full text-center text-sm text-white/60 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Forgot password? Send reset link to owner email
           </button>
           <div className="border-t border-white/10 pt-4">
             <button
               type="button"
-              onClick={() => go("create")}
-              className={linkButton}
+              onClick={() => {
+                setMessage(null);
+                setIsError(false);
+                setMode("setup");
+              }}
+              className="block w-full text-center text-sm text-white/60 hover:text-accent"
             >
-              First time? Create the owner account
+              First time? Set up the owner account
             </button>
           </div>
         </form>
-      )}
-
-      {mode === "forgot" && (
-        <form onSubmit={handleForgot} className="space-y-4">
+      ) : (
+        <form onSubmit={handleOwnerSetup} className="space-y-4">
           <p className="text-sm text-white/70">
-            Enter your registered email address. We&apos;ll send you a link to
-            choose a new password.
+            One-time setup for {site.email}. A secure invitation will be sent
+            to the owner email so you can choose your password.
           </p>
-          <input
-            type="email"
-            required
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Registered email"
-            className={field}
-          />
-          <button type="submit" className={primary}>
-            Send reset link
-          </button>
-          <button type="button" onClick={() => go("login")} className={linkButton}>
-            ← Back to login
-          </button>
-        </form>
-      )}
-
-      {mode === "create" && (
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div>
-            <h2 className="font-serif text-2xl">Create the owner account</h2>
-            <p className="mt-1 text-sm text-white/60">
-              One-time setup for the website owner. It cannot be used to create
-              any other account.
-            </p>
-          </div>
-
           <label className="block text-sm text-white/70">
             Owner email
             <input
@@ -213,63 +212,39 @@ export default function LoginForm() {
               required
               autoComplete="username"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your email address"
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={site.email}
               className={`${field} mt-1`}
             />
           </label>
-
           <label className="block text-sm text-white/70">
             Private setup code
             <input
               type="password"
               required
               autoComplete="off"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Known only to the owner"
+              value={setupCode}
+              onChange={(event) => setSetupCode(event.target.value)}
+              placeholder="Enter the code from your private setup"
               className={`${field} mt-1`}
             />
           </label>
-
-          <PasswordField
-            label="Choose a password"
-            value={password}
-            onChange={setPassword}
-            placeholder="At least 10 characters"
-            autoComplete="new-password"
-          />
-
-          {password.length > 0 && (
-            <div>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4].map((i) => (
-                  <span
-                    key={i}
-                    className={`h-1 flex-1 rounded-full ${
-                      i <= strength ? strengthColors[strength] : "bg-white/10"
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="mt-1 text-xs text-white/50">
-                {strengthLabels[strength]}
-              </p>
-            </div>
-          )}
-
-          <PasswordField
-            label="Repeat password"
-            value={confirm}
-            onChange={setConfirm}
-            placeholder="Type it again"
-            autoComplete="new-password"
-          />
-
-          <button type="submit" className={primary}>
-            Create owner account
+          <button
+            type="submit"
+            disabled={pending}
+            className={`${primary} disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            {pending ? "Sending invitation..." : "Send owner invitation"}
           </button>
-          <button type="button" onClick={() => go("login")} className={linkButton}>
+          <button
+            type="button"
+            onClick={() => {
+              setMessage(null);
+              setIsError(false);
+              setMode("login");
+            }}
+            className="block w-full text-center text-sm text-white/60 hover:text-accent"
+          >
             ← Back to login
           </button>
         </form>
@@ -277,23 +252,15 @@ export default function LoginForm() {
 
       {message && (
         <p
+          role="status"
           className={`mt-5 rounded-lg border p-3 text-sm ${
-            message.error
+            isError
               ? "border-red-400/40 bg-red-500/10 text-red-200"
               : "border-sky-400/40 bg-sky-500/10 text-sky-200"
           }`}
         >
-          {message.text}
+          {message}
         </p>
-      )}
-
-      {DEMO && (
-        <Link
-          href="/admin"
-          className="mt-6 block text-center text-sm text-accent hover:underline"
-        >
-          Preview the dashboard design →
-        </Link>
       )}
     </div>
   );

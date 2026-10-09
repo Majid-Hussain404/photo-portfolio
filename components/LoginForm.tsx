@@ -129,31 +129,10 @@ export default function LoginForm() {
     }
   }
 
-  async function handleEmailResetLink() {
-    setMessage(null);
+  function handleEmailResetLink() {
+    setMessage("Use your private setup code below to set or update your owner password instantly.");
     setIsError(false);
-
-    if (!configured) {
-      setMessage("Supabase is not configured yet.");
-      setIsError(true);
-      return;
-    }
-
-    setPending(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(site.email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=%2Flogin%2Freset`,
-      });
-      if (error) throw error;
-      setMessage(`If configured, a reset link was sent to ${site.email}. You can also use the direct Setup Code tab above.`);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Password reset email failed.";
-      setMessage(`Email error: ${msg}. Tip: Use the 'Set / Reset Owner Password' tab with your private setup code for instant password setup.`);
-      setIsError(true);
-    } finally {
-      setPending(false);
-    }
+    setMode("setup");
   }
 
   return (
@@ -240,9 +219,9 @@ export default function LoginForm() {
             type="button"
             onClick={handleEmailResetLink}
             disabled={pending}
-            className="w-full text-center text-xs uppercase tracking-widest text-white/40 hover:text-accent pt-2"
+            className="w-full text-center text-xs uppercase tracking-widest text-white/40 hover:text-accent pt-2 cursor-pointer"
           >
-            Forgot password? Send email reset link
+            Forgot password? Set new password with private code
           </button>
         </form>
       )}

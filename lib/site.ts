@@ -14,6 +14,7 @@ export interface SiteConfig {
   facebook: string;
   youtube: string;
   bio: string[];
+  photo?: string;
 }
 
 const defaults: SiteConfig = {
@@ -29,6 +30,7 @@ const defaults: SiteConfig = {
   instagram: "",
   facebook: "",
   youtube: "",
+  photo: "",
   bio: [
     "I'm a photographer who loves finding stories in light, landscapes and everyday moments.",
     "My work moves between wide open scenery, quiet nature, people and streets, and the glow of the night sky. Every frame is an attempt to hold a feeling, not just a view.",
@@ -39,5 +41,26 @@ const defaults: SiteConfig = {
 
 export const site: SiteConfig = {
   ...defaults,
-  ...rawSettings,
+  ...(rawSettings as Partial<SiteConfig>),
 };
+
+const SUPABASE_SETTINGS_URL =
+  "https://wpkerstuzvbtrqsjklpq.supabase.co/storage/v1/object/public/portfolio/metadata/site-settings.json";
+
+export async function getDynamicSiteConfig(): Promise<SiteConfig> {
+  try {
+    const res = await fetch(SUPABASE_SETTINGS_URL, {
+      next: { revalidate: 30 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === "object") {
+        return {
+          ...defaults,
+          ...data,
+        };
+      }
+    }
+  } catch {}
+  return site;
+}

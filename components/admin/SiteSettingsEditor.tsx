@@ -1,7 +1,6 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import type { SiteConfig } from "../../lib/site";
+import { compressImageForWeb } from "../../lib/image-compress";
 
 const field =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-accent focus:bg-white/10";
@@ -10,6 +9,7 @@ export default function SiteSettingsEditor() {
   const [settings, setSettings] = useState<Partial<SiteConfig>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(
     null
   );
@@ -30,6 +30,41 @@ export default function SiteSettingsEditor() {
     }
     fetchSettings();
   }, []);
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setMessage(null);
+
+    try {
+      const optimized = await compressImageForWeb(file);
+      const formData = new FormData();
+      formData.append("file", optimized);
+
+      const res = await fetch("/api/admin/profile-photo", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to upload photo");
+
+      setSettings((prev) => ({ ...prev, photo: data.photoUrl }));
+      setMessage({
+        text: "Profile photo updated successfully!",
+        error: false,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error uploading photo.";
+      setMessage({ text: msg, error: true });
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,6 +118,52 @@ export default function SiteSettingsEditor() {
         <p className="mt-1 text-xs text-white/50">
           Update the titles, personal bio, contact info, and social links that visitors see across your portfolio.
         </p>
+      </div>
+
+      {/* Profile Photo Upload Section */}
+      <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5">
+        <label className="block text-xs uppercase tracking-widest text-accent font-semibold mb-3">
+          Your Profile Photograph (Displayed on About Me page)
+        </label>
+        <div className="flex flex-wrap items-center gap-5">
+          <div className="relative h-28 w-24 overflow-hidden rounded-2xl border border-white/20 bg-black/40 flex items-center justify-center shrink-0 shadow-lg">
+            {settings.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={settings.photo}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="font-serif text-3xl text-accent/70 font-light">
+                MH
+              </span>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-black transition hover:scale-105 hover:bg-white cursor-pointer shadow-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-4 w-4"
+              >
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+              <span>{uploadingPhoto ? "Uploading..." : "Upload Profile Photo"}</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={uploadingPhoto}
+                onChange={handlePhotoUpload}
+              />
+            </label>
+            <p className="text-xs text-white/50">
+              Only you (the owner) can upload or change this photo. Visitors to your site cannot modify it.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">

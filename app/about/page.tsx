@@ -1,53 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Reveal from "../../components/Reveal";
+import ProfilePhotoCard from "../../components/ProfilePhotoCard";
 import { categories } from "../../lib/categories";
-import { site } from "../../lib/site";
+import { site, getDynamicSiteConfig } from "../../lib/site";
 
 export const metadata: Metadata = {
   title: `About | ${site.name}`,
   description: `About ${site.name}, ${site.title.toLowerCase()}. ${site.tagline}`,
 };
 
-const initials = site.name
-  .split(" ")
-  .map((w) => w[0])
-  .join("")
-  .slice(0, 2);
+export default async function AboutPage() {
+  const currentSite = await getDynamicSiteConfig();
 
-export default function AboutPage() {
+  const initials = currentSite.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2);
+
   const details = [
-    { label: "Location", value: site.location },
-    { label: "Experience", value: site.experience },
-    { label: "Email", value: site.email, href: `mailto:${site.email}` },
-    { label: "Phone", value: site.phone, href: `tel:${site.phone}` },
+    { label: "Location", value: currentSite.location },
+    { label: "Experience", value: currentSite.experience },
+    { label: "Email", value: currentSite.email, href: `mailto:${currentSite.email}` },
+    { label: "Phone", value: currentSite.phone, href: `tel:${currentSite.phone}` },
   ].filter((d) => d.value);
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-24 pt-36">
       <div className="grid items-center gap-14 lg:grid-cols-5">
         <Reveal className="lg:col-span-2">
-          <div className="relative mx-auto max-w-sm">
-            <div className="absolute -bottom-4 -right-4 h-full w-full rounded-3xl border border-accent/60" />
-            <div
-              className="relative aspect-[3/4] overflow-hidden rounded-3xl shadow-[0_0_60px_rgba(212,165,116,0.25)]"
-              style={{
-                background: "linear-gradient(135deg,#d4a574,#3b2a1a)",
-              }}
-            >
-              <span className="absolute inset-0 flex items-center justify-center font-serif text-7xl text-white/70">
-                {initials}
-              </span>
-              <span
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: "url(/profile.jpg)",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              />
-            </div>
-          </div>
+          <ProfilePhotoCard
+            initialPhoto={currentSite.photo}
+            initials={initials}
+          />
         </Reveal>
 
         <Reveal delay={150} className="lg:col-span-3">
@@ -55,18 +41,18 @@ export default function AboutPage() {
             About me
           </p>
           <h1 className="font-serif text-5xl leading-tight sm:text-6xl">
-            Hi, I&apos;m {site.name}
+            Hi, I&apos;m {currentSite.name}
           </h1>
-          <p className="mt-2 text-lg text-white/60">{site.title}</p>
+          <p className="mt-2 text-lg text-white/60">{currentSite.title}</p>
 
           <div className="mt-8 space-y-4 text-lg leading-relaxed text-white/80">
-            {site.bio.map((paragraph, i) => (
+            {currentSite.bio.map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
           </div>
 
           <blockquote className="mt-8 border-l-2 border-accent pl-5 font-serif text-xl italic text-white/90">
-            {site.quote}
+            {currentSite.quote}
           </blockquote>
         </Reveal>
       </div>

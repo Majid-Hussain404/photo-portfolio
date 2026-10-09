@@ -47,27 +47,31 @@ export default function LoginForm() {
 
     setPending(true);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
+      // 1. Call server login endpoint to reliably set cookies across all devices and browsers
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      if (error) {
-        setMessage("Invalid email or password. If you need to set your password, click 'Set / Reset Owner Password' below.");
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(json.error || "Invalid email or password. You can configure your password with the setup code.");
         setIsError(true);
         return;
       }
 
-      if (data.user.email?.toLowerCase() !== site.email.toLowerCase()) {
-        await supabase.auth.signOut();
-        setMessage("Access Denied: Only the portfolio owner can access the admin panel.");
-        setIsError(true);
-        return;
-      }
+      // 2. Also sync client supabase session
+      try {
+        const supabase = createClient();
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+      } catch {}
 
-      router.replace("/admin");
-      router.refresh();
+      // 3. Full navigation so all cookies are freshly sent to /admin
+      window.location.href = "/admin";
     } catch (error) {
       console.error("Owner sign-in failed:", error);
       setMessage("Sign-in could not be completed. Please try again.");
@@ -185,6 +189,9 @@ export default function LoginForm() {
               type="email"
               required
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="majidhussainmir239@gmail.com"
@@ -239,6 +246,9 @@ export default function LoginForm() {
             <input
               type="email"
               required
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={site.email}

@@ -1,17 +1,17 @@
 [
   {
-    "id": "ph_3wr1vuv",
-    "src": "/photos/sunset/IMG_5258_5936.JPG",
-    "title": "cool sunset photo",
-    "category": "sunset",
-    "published": true,
-    "date": "9 Oct 2026"
-  },
-  {
     "id": "ph_97v3sqn",
     "src": "/photos/landscape/Misty%20Alpine%20Valley.jpg",
     "title": "Misty Alpine Valley",
     "category": "landscape",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_3wr1vuv",
+    "src": "/photos/sunset/IMG_5258_5936.JPG",
+    "title": "cool sunset photo",
+    "category": "sunset",
     "published": true,
     "date": "9 Oct 2026"
   },

@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { categories } from "../../lib/categories";
 
+import { uploadPhotosDirect } from "../../lib/client-upload";
+
 const field =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-accent focus:bg-white/10";
 
@@ -17,6 +19,7 @@ export default function PhotoUpload({ defaultCategory, onPhotoUploaded }: Props)
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(
     null
   );
@@ -51,31 +54,20 @@ export default function PhotoUpload({ defaultCategory, onPhotoUploaded }: Props)
 
     setUploading(true);
     setMessage(null);
+    setUploadStatus("Preparing photographs...");
 
     try {
-      const formData = new FormData();
-      formData.append("category", category);
-      if (title.trim()) {
-        formData.append("title", title.trim());
-      }
-      for (const file of files) {
-        formData.append("files", file);
-      }
-
-      const res = await fetch("/api/admin/photos/upload", {
-        method: "POST",
-        body: formData,
+      const res = await uploadPhotosDirect({
+        files,
+        category,
+        title,
+        onProgress: (status) => setUploadStatus(status),
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
 
       const selectedCategoryName = categories.find((c) => c.slug === category)?.name || category;
 
       setMessage({
-        text: `Success! ${data.message || `Photographs uploaded to ${selectedCategoryName} collection.`}`,
+        text: `Success! Added ${res.count} photograph${res.count === 1 ? "" : "s"} to the ${selectedCategoryName} collection.`,
         error: false,
       });
       setFiles([]);
@@ -89,6 +81,7 @@ export default function PhotoUpload({ defaultCategory, onPhotoUploaded }: Props)
       setMessage({ text: msg, error: true });
     } finally {
       setUploading(false);
+      setUploadStatus(null);
     }
   }
 
@@ -240,7 +233,7 @@ export default function PhotoUpload({ defaultCategory, onPhotoUploaded }: Props)
           className="rounded-full bg-accent px-8 py-3 text-xs font-semibold uppercase tracking-widest text-black transition hover:scale-105 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg"
         >
           {uploading
-            ? `Uploading to ${currentCategoryObj?.name}...`
+            ? uploadStatus || `Uploading to ${currentCategoryObj?.name}...`
             : `Publish ${files.length ? `${files.length} ` : ""}to ${currentCategoryObj?.name}`}
         </button>
 

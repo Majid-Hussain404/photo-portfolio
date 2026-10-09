@@ -5,7 +5,7 @@ import CategoryBackdrop from "../../../components/CategoryBackdrop";
 import Gallery from "../../../components/Gallery";
 import OwnerCategoryUpload from "../../../components/OwnerCategoryUpload";
 import { categories } from "../../../lib/categories";
-import { photos } from "../../../lib/photos";
+import { getDynamicPhotos } from "../../../lib/photos";
 import { themes } from "../../../lib/themes";
 
 export function generateStaticParams() {
@@ -36,7 +36,10 @@ export default async function CategoryPage({
   if (!c) notFound();
 
   const theme = themes[c.slug] ?? themes.landscape;
-  const items = photos.filter((p) => p.category === c.slug);
+  const allList = await getDynamicPhotos();
+  const items = allList.filter(
+    (p) => p.category === c.slug && p.published !== false
+  );
 
   return (
     <>

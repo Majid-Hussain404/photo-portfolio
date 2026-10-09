@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useOwner } from "../lib/useOwner";
+import { uploadPhotosDirect } from "../lib/client-upload";
 
 interface Props {
   categorySlug: string;
@@ -18,6 +19,7 @@ export default function OwnerCategoryUpload({ categorySlug, categoryName }: Prop
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
@@ -44,35 +46,24 @@ export default function OwnerCategoryUpload({ categorySlug, categoryName }: Prop
 
     setUploading(true);
     setMessage(null);
+    setUploadStatus("Preparing photographs...");
 
     try {
-      const formData = new FormData();
-      formData.append("category", categorySlug);
-      if (title.trim()) {
-        formData.append("title", title.trim());
-      }
-      for (const file of files) {
-        formData.append("files", file);
-      }
-
-      const res = await fetch("/api/admin/photos/upload", {
-        method: "POST",
-        body: formData,
+      const res = await uploadPhotosDirect({
+        files,
+        category: categorySlug,
+        title,
+        onProgress: (status) => setUploadStatus(status),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
-
       setMessage({
-        text: `Successfully uploaded to ${categoryName}!`,
+        text: `Successfully uploaded ${res.count} photograph${res.count === 1 ? "" : "s"} to ${categoryName}!`,
         error: false,
       });
       setFiles([]);
       setTitle("");
 
-      // Refresh the page so the new photos appear live immediately
+      // Refresh page so new photos appear live immediately
       router.refresh();
 
       setTimeout(() => {
@@ -84,6 +75,7 @@ export default function OwnerCategoryUpload({ categorySlug, categoryName }: Prop
       setMessage({ text: msg, error: true });
     } finally {
       setUploading(false);
+      setUploadStatus(null);
     }
   }
 
@@ -276,7 +268,9 @@ export default function OwnerCategoryUpload({ categorySlug, categoryName }: Prop
                   disabled={uploading || files.length === 0}
                   className="rounded-full bg-accent px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-black transition hover:scale-105 hover:bg-white disabled:opacity-50 cursor-pointer"
                 >
-                  {uploading ? "Uploading..." : `Upload to ${categoryName}`}
+                  {uploading
+                    ? uploadStatus || `Uploading to ${categoryName}...`
+                    : `Upload to ${categoryName}`}
                 </button>
               </div>
             </form>

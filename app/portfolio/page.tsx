@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { categories } from "../../lib/categories";
-import { photos } from "../../lib/photos";
+import { getDynamicPhotos } from "../../lib/photos";
 import OwnerPortfolioBar from "../../components/OwnerPortfolioBar";
 
 export const metadata: Metadata = {
@@ -10,7 +10,10 @@ export const metadata: Metadata = {
     "Browse photography collections: landscape, sunset, nature, wildlife, portrait, street, architecture, travel and night.",
 };
 
-export default function PortfolioPage() {
+export default async function PortfolioPage() {
+  const dynamicPhotos = await getDynamicPhotos();
+  const publishedList = dynamicPhotos.filter((p) => p.published !== false);
+
   return (
     <main className="mx-auto max-w-7xl px-6 pb-24 pt-36">
       <p className="mb-3 text-sm uppercase tracking-[0.4em] text-accent">
@@ -22,7 +25,7 @@ export default function PortfolioPage() {
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => {
-          const items = photos.filter((p) => p.category === c.slug);
+          const items = publishedList.filter((p) => p.category === c.slug);
           const cover = items[0]?.src;
 
           return (

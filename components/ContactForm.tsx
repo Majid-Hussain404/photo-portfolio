@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-export default function ContactForm() {
+export default function ContactForm({ email }: { email?: string }) {
   const [submitted, setSubmitted] = useState(false);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {

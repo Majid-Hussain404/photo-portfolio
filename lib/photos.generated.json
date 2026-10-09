@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "id": "ph_3wr1vuv",
+    "src": "/photos/sunset/IMG_5258_5936.JPG",
+    "title": "cool sunset photo",
+    "category": "sunset",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_97v3sqn",
+    "src": "/photos/landscape/Misty%20Alpine%20Valley.jpg",
+    "title": "Misty Alpine Valley",
+    "category": "landscape",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_vxt6uvd",
+    "src": "/photos/nature/Serene%20Meadow.jpg",
+    "title": "Serene Meadow",
+    "category": "nature",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_7jnx27w",
+    "src": "/photos/wildlife/Majestic%20Wildlife.jpg",
+    "title": "Majestic Wildlife",
+    "category": "wildlife",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_swfgg2i",
+    "src": "/photos/portrait/Elegance%20in%20Motion.jpg",
+    "title": "Elegance in Motion",
+    "category": "portrait",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_f3qepes",
+    "src": "/photos/street/Urban%20Rhythm.jpg",
+    "title": "Urban Rhythm",
+    "category": "street",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_1hvpoza",
+    "src": "/photos/architecture/Heritage%20Archway.jpg",
+    "title": "Heritage Archway",
+    "category": "architecture",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_384n1ig",
+    "src": "/photos/travel/Wanderlust%20Voyage.jpg",
+    "title": "Wanderlust Voyage",
+    "category": "travel",
+    "published": true,
+    "date": "9 Oct 2026"
+  },
+  {
+    "id": "ph_2arbzbb",
+    "src": "/photos/night/Cosmic%20Horizon.jpg",
+    "title": "Cosmic Horizon",
+    "category": "night",
+    "published": true,
+    "date": "9 Oct 2026"
+  }
+]

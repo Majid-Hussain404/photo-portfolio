@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { categories } from "../../lib/categories";
 import { photos } from "../../lib/photos";
+import OwnerPortfolioBar from "../../components/OwnerPortfolioBar";
 
 export const metadata: Metadata = {
   title: "Portfolio | Majid Hussain Mir",
@@ -15,9 +16,11 @@ export default function PortfolioPage() {
       <p className="mb-3 text-sm uppercase tracking-[0.4em] text-accent">
         Portfolio
       </p>
-      <h1 className="font-serif text-5xl sm:text-6xl">Collections</h1>
+      <h1 className="font-serif text-5xl sm:text-6xl mb-8">Collections</h1>
 
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <OwnerPortfolioBar />
+
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => {
           const items = photos.filter((p) => p.category === c.slug);
           const cover = items[0]?.src;

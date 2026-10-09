@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CategoryBackdrop from "../../../components/CategoryBackdrop";
 import Gallery from "../../../components/Gallery";
+import OwnerCategoryUpload from "../../../components/OwnerCategoryUpload";
 import { categories } from "../../../lib/categories";
 import { photos } from "../../../lib/photos";
 import { themes } from "../../../lib/themes";
@@ -57,6 +58,8 @@ export default async function CategoryPage({
           {c.name}
         </h1>
         <p className="mt-4 max-w-xl text-white/70">{c.description}</p>
+
+        <OwnerCategoryUpload categorySlug={c.slug} categoryName={c.name} />
 
         <div className="mt-14">
           <Gallery photos={items} layout={theme.layout} />

@@ -33,8 +33,9 @@ owner email.
 
 6. Open `/login`, choose “First time? Set up the owner account”, enter the
    email configured in `lib/site.ts` and the private setup code. The website
-   sends an invitation only to that email. Follow the email link to set your
-   password. After setup, remove `OWNER_SETUP_CODE` and
+   sends an invitation only to that email. If Supabase says the account already
+   exists, it sends a password setup/reset link instead. Follow the email link
+   to set your password. After setup, remove `OWNER_SETUP_CODE` and
    `SUPABASE_SERVICE_ROLE_KEY` from the deployment environment and restart or
    redeploy; password login and reset do not need either secret.
 

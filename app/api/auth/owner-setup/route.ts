@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: unknown;
+  let body: { email?: string; setupCode?: string; newPassword?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { message: "Enter the owner email and private setup code." },
+      { message: "Invalid request payload." },
       { status: 400 }
     );
   }
@@ -37,8 +37,6 @@ export async function POST(request: NextRequest) {
   if (
     typeof body !== "object" ||
     body === null ||
-    !("email" in body) ||
-    !("setupCode" in body) ||
     typeof body.email !== "string" ||
     typeof body.setupCode !== "string" ||
     body.email.length > 320 ||
@@ -53,7 +51,7 @@ export async function POST(request: NextRequest) {
   const email = body.email.trim().toLowerCase();
   if (email !== site.email.toLowerCase()) {
     return NextResponse.json(
-      { message: "Only the configured owner email can be invited." },
+      { message: `Only the configured owner email (${site.email}) is authorized.` },
       { status: 403 }
     );
   }
@@ -61,9 +59,12 @@ export async function POST(request: NextRequest) {
   const setupCode = process.env.OWNER_SETUP_CODE;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
   if (!setupCode || !supabaseUrl || !serviceRoleKey) {
     return NextResponse.json(
-      { message: "Owner setup is not configured on the server yet." },
+      {
+        message: "Owner setup is missing server settings. Ensure OWNER_SETUP_CODE and Supabase keys are in .env.local.",
+      },
       { status: 503 }
     );
   }
@@ -78,19 +79,83 @@ export async function POST(request: NextRequest) {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // If a direct newPassword was provided, set it immediately
+  if (body.newPassword && typeof body.newPassword === "string") {
+    if (body.newPassword.length < 8) {
+      return NextResponse.json(
+        { message: "Password must be at least 8 characters long." },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const { data: usersData, error: listError } = await supabase.auth.admin.listUsers();
+      if (listError) throw listError;
+
+      const existingUser = usersData.users.find(
+        (u) => u.email?.toLowerCase() === email
+      );
+
+      if (existingUser) {
+        const { error: updateError } = await supabase.auth.admin.updateUserById(
+          existingUser.id,
+          { password: body.newPassword, email_confirm: true }
+        );
+        if (updateError) throw updateError;
+      } else {
+        const { error: createError } = await supabase.auth.admin.createUser({
+          email,
+          password: body.newPassword,
+          email_confirm: true,
+        });
+        if (createError) throw createError;
+      }
+
+      return NextResponse.json({
+        message: "Owner password successfully configured! You can now log in below.",
+        success: true,
+      });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Password setup failed.";
+      return NextResponse.json(
+        { message: `Could not set password: ${errMsg}` },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Otherwise fallback to sending invitation or reset email
+  const redirectTo = new URL(
+    "/auth/callback?next=%2Flogin%2Freset",
+    request.nextUrl.origin
+  ).toString();
+
   const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: new URL(
-      "/auth/callback?next=%2Flogin%2Freset",
-      request.nextUrl.origin
-    ).toString(),
+    redirectTo,
   });
 
   if (error) {
-    console.error("Owner invitation failed:", error);
+    if (error.code === "email_exists") {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo }
+      );
+      if (resetError) {
+        return NextResponse.json(
+          { message: "The owner password setup email could not be sent. You can set your password directly with the setup code." },
+          { status: 502 }
+        );
+      }
+
+      return NextResponse.json({
+        message: `An owner account already exists. A password setup link was sent to ${site.email}.`,
+      });
+    }
+
     return NextResponse.json(
       {
-        message:
-          "The owner invitation could not be sent. Check the Supabase email provider and whether this account already exists.",
+        message: "The owner invitation could not be sent. You can set your password directly with the setup code.",
       },
       { status: 502 }
     );

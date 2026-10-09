@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.join(process.cwd(), "public", "photos");
+const targetFile = path.join(process.cwd(), "lib", "photos.generated.json");
 const categories = [
   "landscape",
   "sunset",
@@ -16,6 +17,20 @@ const categories = [
   "night",
 ];
 const extensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+
+let existingMap = new Map();
+if (fs.existsSync(targetFile)) {
+  try {
+    const existing = JSON.parse(fs.readFileSync(targetFile, "utf8"));
+    if (Array.isArray(existing)) {
+      for (const item of existing) {
+        if (item.src) existingMap.set(item.src, item);
+      }
+    }
+  } catch {
+    // ignore parse error
+  }
+}
 
 const photos = [];
 
@@ -31,19 +46,22 @@ for (const slug of categories) {
     .sort();
 
   for (const file of files) {
+    const src = `/photos/${slug}/${encodeURI(file)}`;
     const base = path.basename(file, path.extname(file));
     const words = base.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
-    const title = words.charAt(0).toUpperCase() + words.slice(1);
+    const defaultTitle = words.charAt(0).toUpperCase() + words.slice(1);
+
+    const existingItem = existingMap.get(src);
     photos.push({
-      src: `/photos/${slug}/${encodeURI(file)}`,
-      title,
+      id: existingItem?.id || `ph_${Math.random().toString(36).substring(2, 9)}`,
+      src,
+      title: existingItem?.title || defaultTitle,
       category: slug,
+      published: existingItem?.published !== undefined ? existingItem.published : true,
+      date: existingItem?.date || new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
     });
   }
 }
 
-fs.writeFileSync(
-  path.join(process.cwd(), "lib", "photos.generated.json"),
-  JSON.stringify(photos, null, 2)
-);
+fs.writeFileSync(targetFile, JSON.stringify(photos, null, 2));
 console.log(`Found ${photos.length} photos in ${categories.length} categories.`);

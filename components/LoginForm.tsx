@@ -65,10 +65,14 @@ export default function LoginForm() {
       // 2. Also sync client supabase session
       try {
         const supabase = createClient();
-        await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+        if (json.session) {
+          await supabase.auth.setSession(json.session);
+        } else {
+          await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+        }
       } catch {}
 
       // 3. Full navigation so all cookies are freshly sent to /admin

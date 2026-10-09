@@ -52,6 +52,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
@@ -59,29 +60,38 @@ export default function LoginForm() {
       if (!res.ok) {
         setMessage(json.error || "Invalid email or password. You can configure your password with the setup code.");
         setIsError(true);
+        setPending(false);
         return;
       }
 
-      // 2. Also sync client supabase session
+      // 2. Set document cookie directly as a secondary safety net for mobile WebViews (Instagram/TikTok/etc)
+      if (json.token) {
+        try {
+          const isSecure = window.location.protocol === "https:";
+          document.cookie = `owner_auth_session=${encodeURIComponent(
+            json.token
+          )}; path=/; max-age=2592000; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+        } catch (cookieErr) {
+          console.warn("Client cookie set warning:", cookieErr);
+        }
+      }
+
+      // 3. Also sync client supabase session
       try {
         const supabase = createClient();
         if (json.session) {
           await supabase.auth.setSession(json.session);
-        } else {
-          await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
         }
       } catch {}
 
-      // 3. Full navigation so all cookies are freshly sent to /admin
-      window.location.href = "/admin";
+      // 4. Brief delay to allow mobile WebViews to flush cookie jars before navigating
+      setTimeout(() => {
+        window.location.href = "/admin";
+      }, 100);
     } catch (error) {
       console.error("Owner sign-in failed:", error);
       setMessage("Sign-in could not be completed. Please try again.");
       setIsError(true);
-    } finally {
       setPending(false);
     }
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { site } from "../../../../lib/site";
 import { createClient as createServerSupabase } from "../../../../lib/supabase/server";
+import { createSessionToken } from "../../../../lib/session";
 
 const DEFAULT_URL = "https://wpkerstuzvbtrqsjklpq.supabase.co";
 const DEFAULT_SERVICE_KEY =
@@ -69,7 +70,6 @@ export async function POST(request: NextRequest) {
       !authenticatedSession &&
       (rawPassword.trim() === setupCode || rawPassword === setupCode)
     ) {
-      // Sync password to current and sign in
       const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
       const ownerUser = usersData?.users?.find(
         (u) => u.email?.toLowerCase() === email
@@ -111,14 +111,43 @@ export async function POST(request: NextRequest) {
       console.warn("Server cookie set warning:", cookieErr);
     }
 
-    return NextResponse.json({
+    // 4. Construct response and attach first-party owner cookie (works on Instagram webview)
+    const sessionToken = createSessionToken(email, authenticatedSession.user.id);
+    const response = NextResponse.json({
       success: true,
+      token: sessionToken,
       session: {
         access_token: authenticatedSession.access_token,
         refresh_token: authenticatedSession.refresh_token,
       },
       user: authenticatedSession.user,
     });
+
+    // Copy any Supabase auth cookies set into Next.js cookie store into response
+    try {
+      const { cookies: getCookies } = await import("next/headers");
+      const cookieStore = await getCookies();
+      for (const c of cookieStore.getAll()) {
+        response.cookies.set(c.name, c.value, {
+          path: "/",
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
+      }
+    } catch (e) {
+      console.warn("Could not copy server cookies:", e);
+    }
+
+    // Set owner_auth_session cookie (30 days, Lax, root path)
+    response.cookies.set("owner_auth_session", sessionToken, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (err: unknown) {
     console.error("Server login error:", err);
     const msg = err instanceof Error ? err.message : "Login failed.";

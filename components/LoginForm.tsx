@@ -18,6 +18,7 @@ export default function LoginForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState(site.email);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [setupCode, setSetupCode] = useState("");
@@ -200,11 +201,20 @@ export default function LoginForm() {
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest text-white/70 mb-1">
-              Owner Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs uppercase tracking-widest text-white/70">
+                Owner Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-[11px] text-accent hover:underline cursor-pointer"
+              >
+                {showPassword ? "Hide password" : "Show password"}
+              </button>
+            </div>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               autoComplete="current-password"
               value={password}

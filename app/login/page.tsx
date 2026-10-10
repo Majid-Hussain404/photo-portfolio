@@ -15,7 +15,7 @@ export default function LoginPage() {
     <main className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden lg:block overflow-hidden">
         <Image
-          src="/photos/Newback.JPG"
+          src="/Newback.JPG"
           alt=""
           fill
           priority

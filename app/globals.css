@@ -21,7 +21,7 @@ html {
 body {
   min-height: 100vh;
   background-color: #050505;
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.55)), url("/back.JPG");
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.55)), url("/photos/Newback.JPG");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;

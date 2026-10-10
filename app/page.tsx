@@ -10,7 +10,7 @@ export default function Home() {
     <main>
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
         <Image
-          src="/back.JPG"
+          src="/photos/Newback.JPG"
           alt={`Featured photograph by ${site.name}`}
           fill
           priority

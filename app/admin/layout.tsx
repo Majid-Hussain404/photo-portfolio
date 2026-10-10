@@ -33,7 +33,7 @@ async function ProtectedAdmin({ children }: { children: React.ReactNode }) {
   const user = await requireOwner();
 
   return (
-    <div className="min-h-screen bg-[#08090d] text-white">
+    <div className="min-h-screen text-white">
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-28">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>

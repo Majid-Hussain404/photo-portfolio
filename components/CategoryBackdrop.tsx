@@ -7,7 +7,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
         className={base}
         style={{
           background:
-            "linear-gradient(180deg,#0b1a2b 0%,#10343a 55%,#0b1f14 100%)",
+            "linear-gradient(180deg, rgba(11, 26, 43, 0.35) 0%, rgba(16, 52, 58, 0.35) 55%, rgba(11, 31, 20, 0.45) 100%)",
         }}
       >
         <svg
@@ -30,14 +30,14 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
         className={base}
         style={{
           background:
-            "linear-gradient(180deg,#2b1055 0%,#7a1f3d 45%,#e8590c 100%)",
+            "linear-gradient(180deg, rgba(43, 16, 85, 0.25) 0%, rgba(122, 31, 61, 0.25) 45%, rgba(232, 89, 12, 0.3) 100%)",
         }}
       >
         <span
           className="absolute left-1/2 top-[55%] -ml-[210px] h-[420px] w-[420px] rounded-full blur-2xl"
           style={{
             background:
-              "radial-gradient(circle,#ffd27a 0%,#ff8a3d 45%,transparent 70%)",
+              "radial-gradient(circle, rgba(255,210,122,0.4) 0%, rgba(255,138,61,0.3) 45%, transparent 70%)",
             animation: "sun-rise 12s ease-in-out infinite alternate",
           }}
         />
@@ -47,7 +47,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
 
   if (slug === "nature") {
     return (
-      <div className={base} style={{ background: "#06140a" }}>
+      <div className={base} style={{ background: "rgba(6, 20, 10, 0.35)" }}>
         <span
           className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl"
           style={{ animation: "float 10s ease-in-out infinite" }}
@@ -69,7 +69,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
       <div
         className={base}
         style={{
-          background: "linear-gradient(180deg,#1c1209,#2a1a0c 60%,#120a05)",
+          background: "linear-gradient(180deg, rgba(28,18,9,0.35), rgba(42,26,12,0.35) 60%, rgba(18,10,5,0.45))",
         }}
       />
     );
@@ -81,7 +81,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
         className={base}
         style={{
           background:
-            "radial-gradient(ellipse at 50% -10%, #3a3a3a 0%, #0a0a0a 60%)",
+            "radial-gradient(ellipse at 50% -10%, rgba(58,58,58,0.25) 0%, rgba(10,10,10,0.35) 60%)",
         }}
       />
     );
@@ -92,7 +92,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
       <div
         className={base}
         style={{
-          background: "#0d0d0d",
+          background: "rgba(13,13,13,0.35)",
           backgroundImage:
             "repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 4px)",
         }}
@@ -105,7 +105,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
       <div
         className={base}
         style={{
-          background: "#0a1c3a",
+          background: "rgba(10,28,58,0.35)",
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
@@ -119,7 +119,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
       <div
         className={base}
         style={{
-          background: "#1a1410",
+          background: "rgba(26,20,16,0.35)",
           backgroundImage:
             "radial-gradient(rgba(255,220,160,0.18) 1.5px, transparent 1.5px)",
           backgroundSize: "28px 28px",
@@ -132,7 +132,7 @@ export default function CategoryBackdrop({ slug }: { slug: string }) {
     return (
       <div
         className={base}
-        style={{ background: "linear-gradient(180deg,#02030d,#0a0f2c)" }}
+        style={{ background: "linear-gradient(180deg, rgba(2,3,13,0.3), rgba(10,15,44,0.45))" }}
       >
         {Array.from({ length: 60 }, (_, k) => (
           <span

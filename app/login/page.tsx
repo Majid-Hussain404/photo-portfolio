@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-screen lg:grid-cols-2 bg-[#090a0f]">
+    <main className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden lg:block overflow-hidden">
         <Image
           src="/back.JPG"

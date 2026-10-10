@@ -78,7 +78,7 @@ export default async function AboutPage() {
         <Reveal className="mt-16">
           <div className="grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2">
             {details.map((d) => (
-              <div key={d.label} className="bg-background p-6">
+              <div key={d.label} className="bg-white/5 backdrop-blur-xs p-6">
                 <p className="text-xs uppercase tracking-[0.3em] text-white/50">
                   {d.label}
                 </p>
